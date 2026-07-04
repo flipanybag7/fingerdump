@@ -4,6 +4,7 @@
 
 export TARGET = iphone:latest:14.0
 export ARCHS = arm64 arm64e
+export PACKAGE_ARCH = iphoneos-arm64
 export PACKAGE_VERSION = 1.0.0
 
 TWEAK_NAME = FingerDumpTweak
