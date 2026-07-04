@@ -345,44 +345,6 @@
 
 @end
 
-%hookf(OSStatus, SecItemCopyMatching, CFDictionaryRef query, CFTypeRef *result) {
-    CFStringRef service = CFDictionaryGetValue(query, kSecAttrService);
-    CFStringRef account = CFDictionaryGetValue(query, kSecAttrAccount);
-    CFStringRef accessGroup = CFDictionaryGetValue(query, kSecAttrAccessGroup);
-    char srv[256] = {0}, acct[256] = {0}, grp[256] = {0};
-    if (service) CFStringGetCString(service, srv, sizeof(srv), kCFStringEncodingUTF8);
-    if (account) CFStringGetCString(account, acct, sizeof(acct), kCFStringEncodingUTF8);
-    if (accessGroup) CFStringGetCString(accessGroup, grp, sizeof(grp), kCFStringEncodingUTF8);
-    FDLog(@"SecItemCopyMatching", @"service=%s account=%s group=%s", srv, acct, grp);
-    return %orig;
-}
-
-%hookf(OSStatus, SecItemAdd, CFDictionaryRef attributes, CFTypeRef *result) {
-    CFStringRef service = CFDictionaryGetValue(attributes, kSecAttrService);
-    CFStringRef account = CFDictionaryGetValue(attributes, kSecAttrAccount);
-    char srv[256] = {0}, acct[256] = {0};
-    if (service) CFStringGetCString(service, srv, sizeof(srv), kCFStringEncodingUTF8);
-    if (account) CFStringGetCString(account, acct, sizeof(acct), kCFStringEncodingUTF8);
-    FDLog(@"SecItemAdd", @"service=%s account=%s", srv, acct);
-    return %orig;
-}
-
-%hookf(OSStatus, SecItemDelete, CFDictionaryRef query) {
-    CFStringRef service = CFDictionaryGetValue(query, kSecAttrService);
-    char srv[256] = {0};
-    if (service) CFStringGetCString(service, srv, sizeof(srv), kCFStringEncodingUTF8);
-    FDLog(@"SecItemDelete", @"service=%s", srv);
-    return %orig;
-}
-
-%hookf(OSStatus, SecItemUpdate, CFDictionaryRef query, CFDictionaryRef attrsToUpdate) {
-    CFStringRef service = CFDictionaryGetValue(query, kSecAttrService);
-    char srv[256] = {0};
-    if (service) CFStringGetCString(service, srv, sizeof(srv), kCFStringEncodingUTF8);
-    FDLog(@"SecItemUpdate", @"service=%s", srv);
-    return %orig;
-}
-
 %ctor {
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification object:nil queue:nil usingBlock:^(NSNotification *note) {
         FDLog(@"UIApplicationDidFinishLaunching", @"app started");
