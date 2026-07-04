@@ -38,12 +38,6 @@
     return real;
 }
 
-- (UIUserInterfaceIdiom)userInterfaceIdiom {
-    UIUserInterfaceIdiom real = %orig;
-    FDLog(@"UIDevice.userInterfaceIdiom", @"%ld", (long)real);
-    return real;
-}
-
 @end
 
 %hook ASIdentifierManager
