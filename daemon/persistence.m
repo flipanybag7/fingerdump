@@ -118,13 +118,13 @@ void fd_scan_persistence(fd_category_result_t *result) {
         if (ud) {
             id defaults = ((id (*)(id, SEL))(void *)objc_msgSend)((id)ud, sel_registerName("standardUserDefaults"));
             if (defaults) {
-                id testVal = ((id (*)(id, SEL, id))(void *)objc_msgSend)(defaults, sel_registerName("objectForKey:"), CFSTR("FingerDumpPersistenceTest"));
+                id testVal = ((id (*)(id, SEL, id))(void *)objc_msgSend)(defaults, sel_registerName("objectForKey:"), (id)CFSTR("FingerDumpPersistenceTest"));
                 if (testVal) {
                     char *s = strdup(((const char *(*)(id, SEL))(void *)objc_msgSend)(testVal, sel_registerName("UTF8String")));
                     snprintf(val, sizeof(val), "found: %s", s);
                     free(s);
                 } else {
-                    ((void (*)(id, SEL, id, id))(void *)objc_msgSend)(defaults, sel_registerName("setObject:forKey:"), CFSTR("FingerDumpTest"), CFSTR("FingerDumpPersistenceTest"));
+                    ((void (*)(id, SEL, id, id))(void *)objc_msgSend)(defaults, sel_registerName("setObject:forKey:"), (id)CFSTR("FingerDumpTest"), (id)CFSTR("FingerDumpPersistenceTest"));
                     ((void (*)(id, SEL))(void *)objc_msgSend)(defaults, sel_registerName("synchronize"));
                     snprintf(val, sizeof(val), "written (check after reinstall)");
                 }
@@ -154,7 +154,7 @@ void fd_scan_persistence(fd_category_result_t *result) {
         if (wkp) {
             id ds = ((id (*)(id, SEL))(void *)objc_msgSend)((id)wkp, sel_registerName("defaultDataStore"));
             if (ds) {
-                id cookies = ((id (*)(id, SEL))(void *)objc_msgSend)(ds, sel_registerName("fetchDataRecordsOfTypes:completionHandler:"), nil, ^(id records) { });
+                ((void (*)(id, SEL, id, id))(void *)objc_msgSend)(ds, sel_registerName("fetchDataRecordsOfTypes:completionHandler:"), nil, ^(id records) { });
                 if (cookies) {
                     char *s = strdup(((const char *(*)(id, SEL))(void *)objc_msgSend)(cookies, sel_registerName("description")));
                     snprintf(val, sizeof(val), "%s", s);
@@ -170,9 +170,9 @@ void fd_scan_persistence(fd_category_result_t *result) {
         if (fm) {
             id fmgr = ((id (*)(id, SEL))(void *)objc_msgSend)((id)fm, sel_registerName("defaultManager"));
             if (fmgr) {
-                id appSupport = ((id (*)(id, SEL, id, BOOL, id *))(void *)objc_msgSend)(fmgr, sel_registerName("URLForDirectory:inDomain:appropriateForURL:create:error:"), (id)14, (id)1, nil, false, nil);
+                id appSupport = ((id (*)(id, SEL, unsigned long, unsigned long, id, BOOL, id *))(void *)objc_msgSend)(fmgr, sel_registerName("URLForDirectory:inDomain:appropriateForURL:create:error:"), (unsigned long)14, (unsigned long)1, nil, false, nil);
                 if (appSupport) {
-                    id contents = ((id (*)(id, SEL, id, id *))(void *)objc_msgSend)(fmgr, sel_registerName("contentsOfDirectoryAtURL:includingPropertiesForKeys:options:error:"), appSupport, nil, 0, nil);
+                    id contents = ((id (*)(id, SEL, id, id, unsigned long, id *))(void *)objc_msgSend)(fmgr, sel_registerName("contentsOfDirectoryAtURL:includingPropertiesForKeys:options:error:"), appSupport, nil, (unsigned long)0, nil);
                     if (contents) {
                         char *s = strdup(((const char *(*)(id, SEL))(void *)objc_msgSend)(contents, sel_registerName("description")));
                         snprintf(val, sizeof(val), "%s", s);
