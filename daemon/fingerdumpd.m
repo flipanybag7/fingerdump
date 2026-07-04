@@ -59,10 +59,6 @@ static void sigsegv_handler(int sig) {
 }
 
 static void run_cli_scan(void) {
-    signal(SIGSEGV, sigsegv_handler);
-    signal(SIGBUS, sigsegv_handler);
-    signal(SIGABRT, sigsegv_handler);
-
     fd_scan_result_t result;
     fd_scan_all(&result);
 
@@ -74,6 +70,10 @@ static void run_cli_scan(void) {
 int main(int argc, char **argv) {
     signal(SIGINT, cleanup);
     signal(SIGTERM, cleanup);
+    signal(SIGSEGV, sigsegv_handler);
+    signal(SIGBUS, sigsegv_handler);
+    signal(SIGABRT, sigsegv_handler);
+    signal(SIGILL, sigsegv_handler);
 
     if (argc > 1) {
         if (strcmp(argv[1], "--scan") == 0) {

@@ -22,10 +22,17 @@ fingerdumpd_CODESIGN_FLAGS = -Sentitlements.plist
 fingerdumpd_LDFLAGS = \
 	-lobjc \
 	-F/System/Library/PrivateFrameworks \
-	-framework CoreFoundation -framework CoreGraphics \
-	-framework IOKit -framework Security -framework CoreMotion \
-	-framework AudioToolbox -framework CoreText -framework WebKit \
-	-framework UIKit -framework CoreTelephony -framework CFNetwork
+	-framework CoreFoundation \
+	-framework Security \
+	-framework CFNetwork \
+	-weak_framework CoreGraphics \
+	-weak_framework IOKit \
+	-weak_framework CoreMotion \
+	-weak_framework AudioToolbox \
+	-weak_framework CoreText \
+	-weak_framework WebKit \
+	-weak_framework UIKit \
+	-weak_framework CoreTelephony
 
 BUNDLE_NAME = FingerDumpPrefs
 FingerDumpPrefs_FILES = FingerDumpPrefs/FPPreferenceController.m
