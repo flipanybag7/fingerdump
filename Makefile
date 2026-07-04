@@ -18,15 +18,21 @@ fingerdumpd_FILES = \
 	daemon/audio.m daemon/sensor.m daemon/font.m daemon/persistence.m \
 	daemon/behavioral.m daemon/browser.m
 fingerdumpd_CFLAGS = \
-	-I. \
-	-framework CoreFoundation -framework CoreGraphics \
-	-framework IOKit -framework Security -framework CoreMotion \
-	-framework AudioToolbox -framework CoreText -framework WebKit \
-	-framework UIKit
+	-I.
 fingerdumpd_LDFLAGS = \
 	-lobjc \
 	-F/System/Library/PrivateFrameworks \
-	-framework CoreTelephony
+	-framework CoreFoundation \
+	-framework CoreGraphics \
+	-framework IOKit \
+	-framework Security \
+	-framework CoreMotion \
+	-framework AudioToolbox \
+	-framework CoreText \
+	-framework WebKit \
+	-framework UIKit \
+	-framework CoreTelephony \
+	-framework CFNetwork
 
 include $(THEOS)/makefiles/common.mk
 include $(THEOS)/makefiles/tweak.mk
