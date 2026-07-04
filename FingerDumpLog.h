@@ -6,6 +6,7 @@
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <CoreFoundation/CoreFoundation.h>
+#import <Foundation/Foundation.h>
 
 static inline void FDLog(NSString *api, NSString *fmt, ...) {
     va_list args;

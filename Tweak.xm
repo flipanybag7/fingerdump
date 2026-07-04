@@ -1,6 +1,7 @@
 #include "FingerDumpLog.h"
 #import <objc/runtime.h>
 #import <substrate.h>
+#import <UIKit/UIKit.h>
 #include <sys/stat.h>
 
 static id (*orig_UIDevice_name)(id, SEL);
