@@ -48,13 +48,21 @@ static void daemonize(void) {
 }
 
 static void cleanup(int sig) {
-    (void)sig;
     fd_server_stop();
     unlink(pid_path);
-    exit(0);
+    _exit(128 + sig);
+}
+
+static void sigsegv_handler(int sig) {
+    write(STDOUT_FILENO, "{\"error\": \"scanner crashed (SIGSEGV)\", \"hint\": \"IOKit not available on this device\"}\n", 88);
+    _exit(1);
 }
 
 static void run_cli_scan(void) {
+    signal(SIGSEGV, sigsegv_handler);
+    signal(SIGBUS, sigsegv_handler);
+    signal(SIGABRT, sigsegv_handler);
+
     fd_scan_result_t result;
     fd_scan_all(&result);
 

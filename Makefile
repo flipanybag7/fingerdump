@@ -18,6 +18,7 @@ fingerdumpd_FILES = \
 	daemon/audio.m daemon/sensor.m daemon/font.m daemon/persistence.m \
 	daemon/behavioral.m daemon/browser.m
 fingerdumpd_CFLAGS = -I.
+fingerdumpd_CODESIGN_FLAGS = -Sentitlements.plist
 fingerdumpd_LDFLAGS = \
 	-lobjc \
 	-F/System/Library/PrivateFrameworks \
