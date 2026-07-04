@@ -21,20 +21,6 @@
 #define KERN_BOOTUUID 15
 #endif
 
-static int get_sysctl_str(const char *name, int name2, char *out, size_t outlen) {
-    size_t len = outlen;
-    int mib[2] = { CTL_KERN, name2 };
-    if (sysctl(mib, 2, out, &len, NULL, 0) == 0) {
-        return 0;
-    }
-    int mib2[2] = { CTL_HW, name2 };
-    if (sysctl(mib2, 2, out, &len, NULL, 0) == 0) {
-        return 0;
-    }
-    snprintf(out, outlen, "unavailable");
-    return -1;
-}
-
 static void get_platform(char *out, size_t len) {
     size_t n = len;
     int mib[2] = { CTL_HW, HW_MACHINE };
