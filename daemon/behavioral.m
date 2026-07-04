@@ -4,6 +4,8 @@
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <CoreFoundation/CoreFoundation.h>
+#include <sys/sysctl.h>
+#include <time.h>
 #include "shared/types.h"
 
 static void get_locale_info(char *out_lang, size_t lang_len, char *out_region, size_t reg_len,
@@ -59,10 +61,20 @@ static void get_timezone(char *out, size_t len) {
 }
 
 static void get_keyboard_info(char *out, size_t len) {
-    NSString *inputMode = [[UITextInputMode currentInputMode] primaryLanguage];
-    if (inputMode) {
-        snprintf(out, len, "%s", [inputMode UTF8String]);
-    } else {
+    Class tim = objc_getClass("UITextInputMode");
+    if (tim) {
+        id current = ((id (*)(id, SEL))(void *)objc_msgSend)((id)tim, sel_registerName("currentInputMode"));
+        if (current) {
+            id lang = ((id (*)(id, SEL))(void *)objc_msgSend)(current, sel_registerName("primaryLanguage"));
+            if (lang) {
+                char *s = strdup(((const char *(*)(id, SEL))(void *)objc_msgSend)(lang, sel_registerName("UTF8String")));
+                snprintf(out, len, "%s", s);
+                free(s);
+                return;
+            }
+        }
+    }
+    {
         Class kb = objc_getClass("UIKeyboard");
         if (kb) {
             id active = ((id (*)(id, SEL))(void *)objc_msgSend)((id)kb, sel_registerName("activeKeyboard"));
@@ -146,7 +158,7 @@ void fd_scan_behavioral(fd_category_result_t *result) {
         if (nsud) {
             id ud = ((id (*)(id, SEL))(void *)objc_msgSend)((id)nsud, sel_registerName("standardUserDefaults"));
             if (ud) {
-                id appleLocale = ((id (*)(id, SEL, id))(void *)objc_msgSend)(ud, sel_registerName("objectForKey:"), CFSTR("AppleLocale"));
+                id appleLocale = ((id (*)(id, SEL, id))(void *)objc_msgSend)(ud, sel_registerName("objectForKey:"), (id)CFSTR("AppleLocale"));
                 if (appleLocale) {
                     char *s = strdup(((const char *(*)(id, SEL))(void *)objc_msgSend)(appleLocale, sel_registerName("UTF8String")));
                     snprintf(val, sizeof(val), "%s", s);
@@ -162,9 +174,10 @@ void fd_scan_behavioral(fd_category_result_t *result) {
         if (nsud) {
             id ud = ((id (*)(id, SEL))(void *)objc_msgSend)((id)nsud, sel_registerName("standardUserDefaults"));
             if (ud) {
-                id metric = ((id (*)(id, SEL, id))(void *)objc_msgSend)(ud, sel_registerName("objectForKey:"), CFSTR("AppleMetricUnits"));
+                id metric = ((id (*)(id, SEL, id))(void *)objc_msgSend)(ud, sel_registerName("objectForKey:"), (id)CFSTR("AppleMetricUnits"));
                 if (metric) {
-                    snprintf(val, sizeof(val), "%s", [(NSNumber *)metric boolValue] ? "metric" : "imperial");
+                    BOOL metricVal = ((BOOL (*)(id, SEL))(void *)objc_msgSend)(metric, sel_registerName("boolValue"));
+                    snprintf(val, sizeof(val), "%s", metricVal ? "metric" : "imperial");
                 } else { snprintf(val, sizeof(val), "unavailable"); }
             } else { snprintf(val, sizeof(val), "unavailable"); }
         } else { snprintf(val, sizeof(val), "unavailable"); }
