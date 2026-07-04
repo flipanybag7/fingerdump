@@ -61,7 +61,6 @@ jobs:
           mkdir -p pkg/usr/libexec
           mkdir -p pkg/Library/MobileSubstrate/DynamicLibraries
           mkdir -p pkg/var/mobile/Library/FingerDump/www
-          mkdir -p "pkg/Library/Application Support/FingerDump"
 
           cp control pkg/DEBIAN/
           cp postinst pkg/DEBIAN/
@@ -72,7 +71,6 @@ jobs:
           cp FingerDump.plist pkg/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
 
           cp -r web/* pkg/var/mobile/Library/FingerDump/www/
-          cp -r web/* "pkg/Library/Application Support/FingerDump/"
 
       - name: Install dpkg
         run: |
