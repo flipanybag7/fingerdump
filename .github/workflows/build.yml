@@ -82,7 +82,7 @@ jobs:
           find . -type d -exec chmod 755 {} \;
           find . -type f -name "*.dylib" -exec chmod 644 {} \;
           find . -type f -name "*.plist" -exec chmod 644 {} \;
-          chmod 755 usr/libexec/fingerdumpd
+          chmod 755 var/jb/usr/libexec/fingerdumpd
           chmod 755 DEBIAN/postinst
 
           dpkg-deb -Zgzip -b . ../FingerDump_${{ github.sha }}_iphoneos-arm64.deb
