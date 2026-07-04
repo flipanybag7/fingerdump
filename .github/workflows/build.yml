@@ -38,6 +38,11 @@ jobs:
           echo "TARGET=iphone:latest:14.0" >> $GITHUB_ENV
           echo "SYSROOT=$(xcrun --sdk iphoneos --show-sdk-path 2>/dev/null || echo '')" >> $GITHUB_ENV
 
+      - name: Prepare Theos build directory
+        run: |
+          mkdir -p .theos
+          touch .theos/build_session
+
       - name: Build daemon
         run: |
           make fingerdumpd
