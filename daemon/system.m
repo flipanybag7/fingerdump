@@ -111,9 +111,6 @@ static void get_hostname(char *out, size_t len) {
     }
 }
 
-static void get_process_info(void) {
-}
-
 void fd_scan_system(fd_category_result_t *result) {
     result->category = CAT_SYSTEM;
     int i = 0;
