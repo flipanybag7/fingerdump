@@ -155,11 +155,7 @@ void fd_scan_persistence(fd_category_result_t *result) {
             id ds = ((id (*)(id, SEL))(void *)objc_msgSend)((id)wkp, sel_registerName("defaultDataStore"));
             if (ds) {
                 ((void (*)(id, SEL, id, id))(void *)objc_msgSend)(ds, sel_registerName("fetchDataRecordsOfTypes:completionHandler:"), nil, ^(id records) { });
-                if (cookies) {
-                    char *s = strdup(((const char *(*)(id, SEL))(void *)objc_msgSend)(cookies, sel_registerName("description")));
-                    snprintf(val, sizeof(val), "%s", s);
-                    free(s);
-                } else { snprintf(val, sizeof(val), "none"); }
+                snprintf(val, sizeof(val), "async (check log)");
             } else { snprintf(val, sizeof(val), "unavailable"); }
         } else { snprintf(val, sizeof(val), "unavailable"); }
         ADD_IDENT("persistence.webview_cookies", "WKWebView cookies", "WkWebsiteDataStore cookies/storage (cross-app tracking via WebView)", val, "", false, true, true);
