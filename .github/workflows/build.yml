@@ -55,11 +55,16 @@ jobs:
         run: |
           make FingerDumpTweak
 
+      - name: Build preference bundle
+        run: |
+          make FingerDumpPrefs
+
       - name: Prepare package layout
         run: |
           mkdir -p pkg/DEBIAN
           mkdir -p pkg/var/jb/usr/libexec
           mkdir -p pkg/var/jb/Library/MobileSubstrate/DynamicLibraries
+          mkdir -p pkg/var/jb/Library/PreferenceBundles
           mkdir -p pkg/var/jb/var/mobile/Library/FingerDump/www
 
           cp control pkg/DEBIAN/
@@ -69,6 +74,7 @@ jobs:
           cp .theos/obj/debug/fingerdumpd pkg/var/jb/usr/libexec/
           cp .theos/obj/debug/FingerDumpTweak.dylib pkg/var/jb/Library/MobileSubstrate/DynamicLibraries/
           cp FingerDump.plist pkg/var/jb/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
+          cp -r .theos/obj/debug/FingerDumpPrefs.bundle pkg/var/jb/Library/PreferenceBundles/
 
           cp -r web/* pkg/var/jb/var/mobile/Library/FingerDump/www/
 

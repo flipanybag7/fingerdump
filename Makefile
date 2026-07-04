@@ -1,6 +1,5 @@
 # FingerDump root Makefile
-# Build: tweak + daemon
-# App is built separately via Xcode project
+# Build: tweak + daemon + preference bundle
 
 export TARGET = iphone:latest:14.0
 export ARCHS = arm64 arm64e
@@ -18,26 +17,25 @@ fingerdumpd_FILES = \
 	daemon/hardware.m daemon/system.m daemon/network.m daemon/graphics.m \
 	daemon/audio.m daemon/sensor.m daemon/font.m daemon/persistence.m \
 	daemon/behavioral.m daemon/browser.m
-fingerdumpd_CFLAGS = \
-	-I.
+fingerdumpd_CFLAGS = -I.
 fingerdumpd_LDFLAGS = \
 	-lobjc \
 	-F/System/Library/PrivateFrameworks \
-	-framework CoreFoundation \
-	-framework CoreGraphics \
-	-framework IOKit \
-	-framework Security \
-	-framework CoreMotion \
-	-framework AudioToolbox \
-	-framework CoreText \
-	-framework WebKit \
-	-framework UIKit \
-	-framework CoreTelephony \
-	-framework CFNetwork
+	-framework CoreFoundation -framework CoreGraphics \
+	-framework IOKit -framework Security -framework CoreMotion \
+	-framework AudioToolbox -framework CoreText -framework WebKit \
+	-framework UIKit -framework CoreTelephony -framework CFNetwork
+
+BUNDLE_NAME = FingerDumpPrefs
+FingerDumpPrefs_FILES = FingerDumpPrefs/FPPreferenceController.m
+FingerDumpPrefs_CFLAGS = -I.
+FingerDumpPrefs_INSTALL_PATH = /Library/PreferenceBundles
+FingerDumpPrefs_PRIVATE_FRAMEWORKS = Preferences
 
 include $(THEOS)/makefiles/common.mk
 include $(THEOS)/makefiles/tweak.mk
 include $(THEOS)/makefiles/tool.mk
+include $(THEOS)/makefiles/bundle.mk
 
 after-install::
 	install.exec "killall -9 fingerdumpd 2>/dev/null || true"
@@ -46,5 +44,5 @@ after-install::
 	install.exec "chmod 755 /usr/libexec/fingerdumpd"
 	install.exec "chmod 644 /Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.dylib"
 	install.exec "chmod 644 /Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist"
-	install.exec "/usr/libexec/fingerdumpd --daemon"
+	install.exec "/usr/libexec/fingerdumpd --daemon 2>/dev/null || true"
 	install.exec "uicache -p /Applications/FingerDump.app 2>/dev/null || true"
