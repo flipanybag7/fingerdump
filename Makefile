@@ -13,10 +13,10 @@ FingerDumpTweak_PRIVATE_FRAMEWORKS = CoreTelephony
 
 TOOL_NAME = fingerdumpd
 fingerdumpd_FILES = \
-	daemon/fingerdumpd.c daemon/scanner.c daemon/socket_server.c \
-	daemon/hardware.c daemon/system.c daemon/network.c daemon/graphics.c \
-	daemon/audio.c daemon/sensor.c daemon/font.c daemon/persistence.c \
-	daemon/behavioral.c daemon/browser.c
+	daemon/fingerdumpd.m daemon/scanner.m daemon/socket_server.m \
+	daemon/hardware.m daemon/system.m daemon/network.m daemon/graphics.m \
+	daemon/audio.m daemon/sensor.m daemon/font.m daemon/persistence.m \
+	daemon/behavioral.m daemon/browser.m
 fingerdumpd_CFLAGS = \
 	-I. \
 	-framework CoreFoundation -framework CoreGraphics \
