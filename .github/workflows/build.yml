@@ -74,6 +74,10 @@ jobs:
           cp -r web/* pkg/var/mobile/Library/FingerDump/www/
           cp -r web/* "pkg/Library/Application Support/FingerDump/"
 
+      - name: Install dpkg
+        run: |
+          brew install dpkg
+
       - name: Build .deb
         run: |
           cd pkg
