@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>FingerDump Web Tests</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, sans-serif; background: #1a1a2e; color: #eee; padding: 16px; }
+h1 { color: #e94560; font-size: 22px; margin-bottom: 16px; }
+h2 { color: #0f3460; font-size: 17px; margin: 12px 0 8px; padding: 8px 12px; background: #16213e; border-radius: 8px; color: #eee; }
+.section { background: #16213e; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.result-item { padding: 6px 0; border-bottom: 1px solid #0f3460; font-size: 13px; }
+.result-item:last-child { border-bottom: none; }
+.label { color: #8899aa; }
+.value { color: #fff; word-break: break-all; font-family: 'Courier New', monospace; font-size: 12px; margin-top: 2px; }
+.leak { color: #e94560; font-weight: bold; }
+.safe { color: #4ecca3; }
+.warning { color: #f0a500; }
+button { background: #e94560; border: none; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 15px; cursor: pointer; margin: 4px; }
+button:active { opacity: 0.7; }
+button.secondary { background: #0f3460; }
+#status { margin: 8px 0; font-size: 12px; color: #8899aa; }
+canvas { display: none; }
+</style>
+</head>
+<body>
+<h1>FingerDump</h1>
+<p style="font-size:13px;color:#8899aa;margin-bottom:16px;">WebView fingerprint leak scanner. Run each test to check if fingerprints are being properly spoofed.</p>
+
+<div id="status">Ready. Tap a test below.</div>
+
+<div class="section">
+<h2>Canvas Fingerprint</h2>
+<button onclick="runCanvasTest()">Run Canvas Test</button>
+<button class="secondary" onclick="clearResult('canvas-results')">Clear</button>
+<div id="canvas-results"></div>
+</div>
+
+<div class="section">
+<h2>WebGL Fingerprint</h2>
+<button onclick="runWebGLTest()">Run WebGL Test</button>
+<button class="secondary" onclick="clearResult('webgl-results')">Clear</button>
+<div id="webgl-results"></div>
+</div>
+
+<div class="section">
+<h2>AudioContext Fingerprint</h2>
+<button onclick="runAudioTest()">Run Audio Test</button>
+<button class="secondary" onclick="clearResult('audio-results')">Clear</button>
+<div id="audio-results"></div>
+</div>
+
+<div class="section">
+<h2>Font Enumeration</h2>
+<button onclick="runFontTest()">Run Font Test</button>
+<button class="secondary" onclick="clearResult('font-results')">Clear</button>
+<div id="font-results"></div>
+</div>
+
+<div class="section">
+<h2>Network / WebRTC Leaks</h2>
+<button onclick="runNetworkTest()">Run Network Test</button>
+<button class="secondary" onclick="clearResult('network-results')">Clear</button>
+<div id="network-results"></div>
+</div>
+
+<div class="section">
+<h2>Navigator Properties</h2>
+<button onclick="runNavigatorTest()">Run Navigator Test</button>
+<button class="secondary" onclick="clearResult('navigator-results')">Clear</button>
+<div id="navigator-results"></div>
+</div>
+
+<canvas id="canvas" width="256" height="256"></canvas>
+<canvas id="webgl-canvas" width="256" height="256"></canvas>
+
+<script src="canvas_fingerprint.js"></script>
+<script src="webgl_fingerprint.js"></script>
+<script src="audio_fingerprint.js"></script>
+<script src="font_enumeration.js"></script>
+<script src="network_leaks.js"></script>
+<script>
+function clearResult(id) { document.getElementById(id).innerHTML = ''; }
+function addResult(containerId, label, value, isLeak) {
+  const div = document.getElementById(containerId);
+  const item = document.createElement('div');
+  item.className = 'result-item';
+  const leakClass = isLeak === true ? 'leak' : (isLeak === false ? 'safe' : '');
+  item.innerHTML = `<div class="label">${label}</div><div class="value ${leakClass}">${escapeHtml(String(value))}</div>`;
+  div.appendChild(item);
+}
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+document.addEventListener('DOMContentLoaded', () => {
+  runNavigatorTest();
+});
+</script>
+</body>
+</html>

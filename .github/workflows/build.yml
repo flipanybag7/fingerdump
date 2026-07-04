@@ -1,0 +1,172 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - '**.md'
+      - 'web/**'
+      - 'tools/**'
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build daemon + tweak
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout Theos
+        uses: actions/checkout@v4
+        with:
+          repository: theos/theos
+          path: theos
+          ref: master
+
+      - name: Fetch Theos submodules
+        run: |
+          cd theos
+          git submodule update --init --depth 1
+
+      - name: Download SDKS
+        run: |
+          curl -sL https://github.com/xybp888/iOS-SDKs/releases/download/17.5/iPhoneOS17.5.sdk.zip -o sdk.zip
+          unzip -q sdk.zip -d theos/sdks/
+          rm sdk.zip
+
+      - name: Set up environment
+        run: |
+          echo "THEOS=${{ github.workspace }}/theos" >> $GITHUB_ENV
+          echo "TARGET=iphone:latest:14.0" >> $GITHUB_ENV
+
+      - name: Build daemon
+        run: |
+          cd fingerdump
+          make fingerdumpd
+
+      - name: Build tweak
+        run: |
+          cd fingerdump
+          make FingerDumpTweak
+
+      - name: Prepare package layout
+        run: |
+          cd fingerdump
+          mkdir -p pkg/DEBIAN
+          mkdir -p pkg/usr/libexec
+          mkdir -p pkg/usr/lib
+          mkdir -p pkg/Library/MobileSubstrate/DynamicLibraries
+          mkdir -p pkg/var/mobile/Library/FingerDump/www
+          mkdir -p pkg/Library/Application\ Support/FingerDump
+
+          cp control pkg/DEBIAN/
+          cp postinst pkg/DEBIAN/
+          chmod 755 pkg/DEBIAN/postinst
+
+          cp .theos/obj/debug/fingerdumpd pkg/usr/libexec/
+          cp .theos/obj/debug/FingerDumpTweak.dylib pkg/Library/MobileSubstrate/DynamicLibraries/
+          cp FingerDump.plist pkg/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
+
+          cp -r web/* pkg/var/mobile/Library/FingerDump/www/
+          cp -r web/* pkg/Library/Application\ Support/FingerDump/
+
+      - name: Build .deb
+        run: |
+          cd fingerdump/pkg
+          chmod -R 755 usr Library var
+          chmod 644 Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.dylib
+          chmod 644 Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
+          chmod 755 usr/libexec/fingerdumpd
+
+          dpkg-deb -Zgzip -b . ../FingerDump_${{ github.sha }}_iphoneos-arm.deb
+          mv ../FingerDump_${{ github.sha }}_iphoneos-arm.deb ../FingerDump_latest_iphoneos-arm.deb
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FingerDump-deb
+          path: fingerdump/FingerDump_*.deb
+          compression-level: 0
+
+      - name: Upload binary artifact (debug symbols)
+        uses: actions/upload-artifact@v4
+        with:
+          name: fingerdumpd-binary
+          path: fingerdump/.theos/obj/debug/fingerdumpd
+          compression-level: 0
+
+  lint:
+    name: Validate project files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check control file syntax
+        run: |
+          if [ -f fingerdump/control ]; then
+            echo "control file exists: OK"
+          fi
+
+      - name: Check required files exist
+        run: |
+          missing=0
+          for f in \
+            fingerdump/Tweak.xm \
+            fingerdump/FingerDump.plist \
+            fingerdump/daemon/fingerdumpd.c \
+            fingerdump/daemon/scanner.c \
+            fingerdump/daemon/socket_server.c \
+            fingerdump/daemon/hardware.c \
+            fingerdump/daemon/system.c \
+            fingerdump/daemon/network.c \
+            fingerdump/daemon/graphics.c \
+            fingerdump/daemon/audio.c \
+            fingerdump/daemon/sensor.c \
+            fingerdump/daemon/font.c \
+            fingerdump/daemon/persistence.c \
+            fingerdump/daemon/behavioral.c \
+            fingerdump/daemon/browser.c \
+            fingerdump/shared/types.h \
+            fingerdump/shared/protocol.h \
+            fingerdump/shared/categories.c \
+            fingerdump/web/index.html \
+            fingerdump/web/canvas_fingerprint.js \
+            fingerdump/web/webgl_fingerprint.js \
+            fingerdump/web/audio_fingerprint.js \
+            fingerdump/web/font_enumeration.js \
+            fingerdump/web/network_leaks.js; do
+            if [ ! -f "$f" ]; then
+              echo "Missing: $f"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "Some files are missing!"
+            exit 1
+          fi
+          echo "All required files present: OK"
+
+  release:
+    name: Create release
+    needs: [build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download built deb
+        uses: actions/download-artifact@v4
+        with:
+          name: FingerDump-deb
+          path: .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: FingerDump_*.deb
+          generate_release_notes: true

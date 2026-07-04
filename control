@@ -1,0 +1,10 @@
+Package: com.fingerdump.tool
+Name: FingerDump
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: Comprehensive fingerprint identifier scanner and leak detector for iOS. Scans hardware, system, network, graphics, audio, sensors, fonts, persistence, and behavioral identifiers. Includes daemon, tweak hooks, companion app, and web test suite.
+Maintainer: FingerDump Team
+Author: FingerDump Team
+Section: Utilities
+Depends: firmware (>= 14.0), mobilesubstrate (>= 0.9.5000), com.rpetrich.rocketbootstrap (>= 1.0)
+Priority: optional

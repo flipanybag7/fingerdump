@@ -1,0 +1,27 @@
+name: FingerDump
+options:
+  bundleIdPrefix: com.fingerdump
+  deploymentTarget:
+    iOS: "15.0"
+
+settings:
+  SWIFT_VERSION: 5.7
+  DEVELOPMENT_TEAM: ""
+
+targets:
+  FingerDump:
+    type: application
+    platform: iOS
+    sources:
+      - FingerDump
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.fingerdump.app
+      INFOPLIST_FILE: FingerDump/Info.plist
+      CODE_SIGN_ENTITLEMENTS: FingerDump/FingerDump.entitlements
+    info:
+      path: FingerDump/Info.plist
+      properties:
+        LSRequiresIPhoneOS: true
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UILaunchScreen: {}

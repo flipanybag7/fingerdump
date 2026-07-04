@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# FingerDump post-installation script
+
+# Create data directories
+mkdir -p /var/mobile/Library/FingerDump/www
+mkdir -p /var/mobile/Library/FingerDump/reports
+mkdir -p /var/run/fingerdumpd
+
+# Copy web test files
+if [ -d "/Library/Application Support/FingerDump/web" ]; then
+    cp -r /Library/Application\ Support/FingerDump/web/* /var/mobile/Library/FingerDump/www/
+fi
+
+# Set permissions
+chmod 755 /usr/libexec/fingerdumpd
+chmod 755 /Applications/FingerDump.app/FingerDump
+chmod 644 /Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.dylib
+chmod 644 /Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
+
+# Start the daemon
+/usr/libexec/fingerdumpd --daemon
+
+# Register the app
+uicache -p /Applications/FingerDump.app
+
+echo "FingerDump installed successfully."
+echo "Run 'fingerdumpd --scan' for a CLI scan, or open the FingerDump app."
+echo "Tweak is active. Check /var/mobile/Library/FingerDump/api_calls.log for traces."
