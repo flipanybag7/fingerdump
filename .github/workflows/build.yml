@@ -47,17 +47,10 @@ jobs:
           mkdir -p .theos
           touch .theos/build_session
 
-      - name: Build daemon
+      - name: Build all (daemon + tweak + prefs)
         run: |
-          make fingerdumpd
-
-      - name: Build tweak
-        run: |
-          make FingerDumpTweak
-
-      - name: Build preference bundle
-        run: |
-          make FingerDumpPrefs
+          make clean || true
+          make fingerdumpd FingerDumpTweak FingerDumpPrefs
 
       - name: Prepare package layout
         run: |
@@ -74,7 +67,13 @@ jobs:
           cp .theos/obj/debug/fingerdumpd pkg/var/jb/usr/libexec/
           cp .theos/obj/debug/FingerDumpTweak.dylib pkg/var/jb/Library/MobileSubstrate/DynamicLibraries/
           cp FingerDump.plist pkg/var/jb/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
-          cp -r .theos/obj/debug/FingerDumpPrefs.bundle pkg/var/jb/Library/PreferenceBundles/
+          if [ -d .theos/obj/debug/FingerDumpPrefs.bundle ]; then
+            cp -r .theos/obj/debug/FingerDumpPrefs.bundle pkg/var/jb/Library/PreferenceBundles/
+          elif [ -d .theos/staging/Library/PreferenceBundles/FingerDumpPrefs.bundle ]; then
+            cp -r .theos/staging/Library/PreferenceBundles/FingerDumpPrefs.bundle pkg/var/jb/Library/PreferenceBundles/
+          else
+            echo "WARNING: FingerDumpPrefs.bundle not found, skipping"
+          fi
 
           cp -r web/* pkg/var/jb/var/mobile/Library/FingerDump/www/
 
