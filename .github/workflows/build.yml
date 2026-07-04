@@ -58,19 +58,19 @@ jobs:
       - name: Prepare package layout
         run: |
           mkdir -p pkg/DEBIAN
-          mkdir -p pkg/usr/libexec
-          mkdir -p pkg/Library/MobileSubstrate/DynamicLibraries
-          mkdir -p pkg/var/mobile/Library/FingerDump/www
+          mkdir -p pkg/var/jb/usr/libexec
+          mkdir -p pkg/var/jb/Library/MobileSubstrate/DynamicLibraries
+          mkdir -p pkg/var/jb/var/mobile/Library/FingerDump/www
 
           cp control pkg/DEBIAN/
           cp postinst pkg/DEBIAN/
           chmod 755 pkg/DEBIAN/postinst
 
-          cp .theos/obj/debug/fingerdumpd pkg/usr/libexec/
-          cp .theos/obj/debug/FingerDumpTweak.dylib pkg/Library/MobileSubstrate/DynamicLibraries/
-          cp FingerDump.plist pkg/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
+          cp .theos/obj/debug/fingerdumpd pkg/var/jb/usr/libexec/
+          cp .theos/obj/debug/FingerDumpTweak.dylib pkg/var/jb/Library/MobileSubstrate/DynamicLibraries/
+          cp FingerDump.plist pkg/var/jb/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
 
-          cp -r web/* pkg/var/mobile/Library/FingerDump/www/
+          cp -r web/* pkg/var/jb/var/mobile/Library/FingerDump/www/
 
       - name: Install dpkg
         run: |
