@@ -138,7 +138,7 @@ static void get_wifi_info(char *out_ssid, size_t ssid_len, char *out_bssid, size
         return;
     }
 
-    id scan = ((id (*)(id, SEL, id, id))(void *)objc_msgSend)(iface, sel_registerName("scanForNetworksWithName:error:"), nil, nil);
+    ((void (*)(id, SEL, id, id))(void *)objc_msgSend)(iface, sel_registerName("scanForNetworksWithName:error:"), nil, nil);
     id ssid_val = ((id (*)(id, SEL))(void *)objc_msgSend)(iface, sel_registerName("ssid"));
     if (ssid_val) {
         char *s = strdup(((const char *(*)(id, SEL))(void *)objc_msgSend)(ssid_val, sel_registerName("UTF8String")));
