@@ -4,7 +4,6 @@
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <CoreFoundation/CoreFoundation.h>
-#include <CoreText/CoreText.h>
 #include "shared/types.h"
 
 void fd_scan_fonts(fd_category_result_t *result) {
@@ -25,40 +24,36 @@ void fd_scan_fonts(fd_category_result_t *result) {
 } while(0)
 
     char val[4096];
-    CFArrayRef fontFamilies = CTFontCopyAvailableFamilies();
-    if (fontFamilies) {
-        CFIndex count = CFArrayGetCount(fontFamilies);
-        int printed = 0;
-        char buf[4096] = {0};
-        for (CFIndex j = 0; j < count && j < 100; j++) {
-            CFStringRef family = CFArrayGetValueAtIndex(fontFamilies, j);
-            if (family) {
-                char fname[256] = {0};
-                CFStringGetCString(family, fname, sizeof(fname), kCFStringEncodingUTF8);
-                if (buf[0]) strncat(buf, ", ", sizeof(buf) - strlen(buf) - 1);
-                strncat(buf, fname, sizeof(buf) - strlen(buf) - 1);
-                printed++;
+    Class uifont = objc_getClass("UIFont");
+
+    if (uifont) {
+        id familyNames = ((id (*)(id, SEL))(void *)objc_msgSend)((id)uifont, sel_registerName("familyNames"));
+        if (familyNames) {
+            unsigned long count = ((unsigned long (*)(id, SEL))(void *)objc_msgSend)(familyNames, sel_registerName("count"));
+            char buf[4096] = {0};
+            unsigned long printed = 0;
+            for (unsigned long j = 0; j < count && j < 100; j++) {
+                id name = ((id (*)(id, SEL, unsigned long))(void *)objc_msgSend)(familyNames, sel_registerName("objectAtIndex:"), j);
+                if (name) {
+                    char nbuf[256] = {0};
+                    const char *cname = ((const char *(*)(id, SEL))(void *)objc_msgSend)(name, sel_registerName("UTF8String"));
+                    if (cname) {
+                        if (buf[0]) strncat(buf, ", ", sizeof(buf) - strlen(buf) - 1);
+                        strncat(buf, cname, sizeof(buf) - strlen(buf) - 1);
+                        printed++;
+                    }
+                }
             }
+            snprintf(val, sizeof(val), "%s", buf);
+            ADD_IDENT("font.family_names", "Font family names", "UIFont.familyNames (iOS API)", val, "", false, true, true);
+
+            snprintf(val, sizeof(val), "%lu total families (showing %lu)", (unsigned long)count, printed);
+            ADD_IDENT("font.count", "Font family count", "Total number of available font families", val, "", false, true, true);
+        } else {
+            ADD_IDENT("font.family_names", "Font family names", "UIFont.familyNames", "unavailable", "", false, true, true);
         }
-        snprintf(val, sizeof(val), "%s", buf);
-        ADD_IDENT("font.system_families", "System font families", "CTFontCopyAvailableFamilies", val, "", false, true, true);
-
-        snprintf(val, sizeof(val), "%ld total fonts (showing %d)", (long)count, printed);
-        ADD_IDENT("font.count", "Font count", "Total number of available font families", val, "", false, true, true);
-
-        CFRelease(fontFamilies);
     } else {
-        ADD_IDENT("font.system_families", "System font families", "CTFontCopyAvailableFamilies", "unavailable", "", false, true, true);
-        ADD_IDENT("font.count", "Font count", "Total number of available font families", "unavailable", "", false, true, true);
-    }
-
-    {
-        CFArrayRef descriptors = CTFontCopyDefaultCascadeListForLanguages((CTFontRef)CTFontCreateUIFontForLanguage(kCTFontUIFontSystem, 12.0, NULL), NULL);
-        if (descriptors) {
-            snprintf(val, sizeof(val), "%ld cascade list entries", (long)CFArrayGetCount(descriptors));
-            CFRelease(descriptors);
-        } else { snprintf(val, sizeof(val), "unavailable"); }
-        ADD_IDENT("font.cascade_list", "Font cascade list", "Default cascade list for system font", val, "", false, true, true);
+        ADD_IDENT("font.family_names", "Font family names", "UIFont.familyNames", "unavailable (no UIFont)", "", false, true, true);
     }
 
     result->count = i;
