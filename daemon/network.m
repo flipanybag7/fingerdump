@@ -110,54 +110,6 @@ static void get_active_interface(char *out, size_t len) {
     snprintf(out, len, "unknown");
 }
 
-static void get_wifi_info(char *out_ssid, size_t ssid_len, char *out_bssid, size_t bssid_len) {
-    Class cwifi = objc_getClass("CWWiFiClient");
-    if (!cwifi) {
-        cwifi = objc_getClass("WiFiManagerClient");
-        if (!cwifi) {
-            snprintf(out_ssid, ssid_len, "unavailable (no WiFi API)");
-            snprintf(out_bssid, bssid_len, "unavailable");
-            return;
-        }
-    }
-
-    id client = ((id (*)(id, SEL))(void *)objc_msgSend)((id)cwifi, sel_registerName("sharedWiFiClient"));
-    if (!client) {
-        snprintf(out_ssid, ssid_len, "unavailable");
-        snprintf(out_bssid, bssid_len, "unavailable");
-        return;
-    }
-
-    id iface = ((id (*)(id, SEL))(void *)objc_msgSend)(client, sel_registerName("interface"));
-    if (!iface) {
-        iface = ((id (*)(id, SEL, id))(void *)objc_msgSend)(client, sel_registerName("interfaceByName:"), (id)CFSTR("en0"));
-    }
-    if (!iface) {
-        snprintf(out_ssid, ssid_len, "unavailable");
-        snprintf(out_bssid, bssid_len, "unavailable");
-        return;
-    }
-
-    ((void (*)(id, SEL, id, id))(void *)objc_msgSend)(iface, sel_registerName("scanForNetworksWithName:error:"), nil, nil);
-    id ssid_val = ((id (*)(id, SEL))(void *)objc_msgSend)(iface, sel_registerName("ssid"));
-    if (ssid_val) {
-        char *s = strdup(((const char *(*)(id, SEL))(void *)objc_msgSend)(ssid_val, sel_registerName("UTF8String")));
-        snprintf(out_ssid, ssid_len, "%s", s);
-        free(s);
-    } else {
-        snprintf(out_ssid, ssid_len, "unavailable");
-    }
-
-    id bssid_val = ((id (*)(id, SEL))(void *)objc_msgSend)(iface, sel_registerName("bssid"));
-    if (bssid_val) {
-        char *s = strdup(((const char *(*)(id, SEL))(void *)objc_msgSend)(bssid_val, sel_registerName("UTF8String")));
-        snprintf(out_bssid, bssid_len, "%s", s);
-        free(s);
-    } else {
-        snprintf(out_bssid, bssid_len, "unavailable");
-    }
-}
-
 static void get_dns_servers(char *out, size_t len) {
     Class resolver = objc_getClass("NSResolver");
     if (resolver) {
