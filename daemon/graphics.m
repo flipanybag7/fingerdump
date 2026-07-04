@@ -64,7 +64,7 @@ static void get_opengl_info(char *out, size_t len) {
     id ctx = ((id (*)(id, SEL))(void *)objc_msgSend)((id)eagl, sel_registerName("alloc"));
     ctx = ((id (*)(id, SEL, id))(void *)objc_msgSend)(ctx, sel_registerName("initWithAPI:"), (id)1);
     if (!ctx) {
-        ctx = ((id (*)(id, SEL, id))(void *)objc_msgSend)((id)eagl, sel_registerName("alloc"));
+        ctx = ((id (*)(id, SEL))(void *)objc_msgSend)((id)eagl, sel_registerName("alloc"));
         ctx = ((id (*)(id, SEL, id))(void *)objc_msgSend)(ctx, sel_registerName("initWithAPI:"), (id)2);
     }
     if (!ctx) { snprintf(out, len, "unavailable"); return; }
@@ -82,27 +82,21 @@ static void get_opengl_info(char *out, size_t len) {
 }
 
 static void get_display_info(char *out, size_t len) {
-    uint32_t displayCount = 0;
-    CGDirectDisplayID displays[16];
-    CGGetActiveDisplayList(16, displays, &displayCount);
+    Class uscreen = objc_getClass("UIScreen");
+    if (!uscreen) { snprintf(out, len, "unavailable"); return; }
 
-    char buf[2048] = {0};
-    for (uint32_t i = 0; i < displayCount && i < 4; i++) {
-        char entry[256];
-        CGRect bounds = CGDisplayBounds(displays[i]);
-        CGSize size = CGDisplayScreenSize(displays[i]);
-        uint32_t mode = CGDisplayShowDuplicateDisplays(displays[i]);
-        (void)mode;
-        CGFloat rotation = CGDisplayRotation(displays[i]);
-        snprintf(entry, sizeof(entry), "[%u] %dx%d@%.0fHz size=%.0fx%.0fmm rot=%.1f",
-                 i, (int)bounds.size.width, (int)bounds.size.height,
-                 (double)CGDisplayRefreshRate(displays[i]),
-                 size.width, size.height, (double)rotation);
-        if (buf[0]) strncat(buf, "; ", sizeof(buf) - strlen(buf) - 1);
-        strncat(buf, entry, sizeof(buf) - strlen(buf) - 1);
-    }
-    if (buf[0]) snprintf(out, len, "%s", buf);
-    else snprintf(out, len, "unavailable");
+    id mainScreen = ((id (*)(id, SEL))(void *)objc_msgSend)((id)uscreen, sel_registerName("mainScreen"));
+    if (!mainScreen) { snprintf(out, len, "unavailable"); return; }
+
+    CGRect bounds = ((CGRect (*)(id, SEL))(void *)objc_msgSend)(mainScreen, sel_registerName("bounds"));
+    CGFloat scale = ((CGFloat (*)(id, SEL))(void *)objc_msgSend)(mainScreen, sel_registerName("scale"));
+    CGFloat brightness = ((CGFloat (*)(id, SEL))(void *)objc_msgSend)(mainScreen, sel_registerName("brightness"));
+    id traitCollection = ((id (*)(id, SEL))(void *)objc_msgSend)(mainScreen, sel_registerName("traitCollection"));
+    NSInteger displayGamut = traitCollection ? ((NSInteger (*)(id, SEL))(void *)objc_msgSend)(traitCollection, sel_registerName("displayGamut")) : 0;
+
+    snprintf(out, len, "UIScreen: %.0fx%.0f scale=%.1f brightness=%.2f gamut=%ld",
+             bounds.size.width, bounds.size.height,
+             (double)scale, (double)brightness, (long)displayGamut);
 }
 
 void fd_scan_graphics(fd_category_result_t *result) {
@@ -139,9 +133,13 @@ void fd_scan_graphics(fd_category_result_t *result) {
     ADD_IDENT("gfx.display", "Display hardware", "CoreGraphics display IDs, sizes, refresh rates", val, "", false, true, true);
 
     {
-        uint32_t pixelDepth = CGDisplayBitsPerPixel(CGMainDisplayID());
-        snprintf(val, sizeof(val), "%u", pixelDepth);
-        ADD_IDENT("gfx.color_depth", "Color depth", "CGDisplayBitsPerPixel", val, "", false, true, true);
+        Class uscreen = objc_getClass("UIScreen");
+        if (uscreen) {
+            id ms = ((id (*)(id, SEL))(void *)objc_msgSend)((id)uscreen, sel_registerName("mainScreen"));
+            CGFloat sc = ms ? ((CGFloat (*)(id, SEL))(void *)objc_msgSend)(ms, sel_registerName("scale")) : 1.0;
+            snprintf(val, sizeof(val), "32-bit (scale=%.1f)", (double)sc);
+        } else { snprintf(val, sizeof(val), "unknown (no UIScreen)"); }
+        ADD_IDENT("gfx.color_depth", "Color depth", "Display color depth (iOS: 32-bit assumed)", val, "", false, true, true);
     }
 
     ADD_IDENT("gfx.canvas_fp", "Canvas fingerprint (WebView)", "Canvas 2D fingerprint via JS (load web test page)", "(run web test)", "", false, true, false);
