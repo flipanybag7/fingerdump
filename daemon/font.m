@@ -35,7 +35,6 @@ void fd_scan_fonts(fd_category_result_t *result) {
             for (unsigned long j = 0; j < count && j < 100; j++) {
                 id name = ((id (*)(id, SEL, unsigned long))(void *)objc_msgSend)(familyNames, sel_registerName("objectAtIndex:"), j);
                 if (name) {
-                    char nbuf[256] = {0};
                     const char *cname = ((const char *(*)(id, SEL))(void *)objc_msgSend)(name, sel_registerName("UTF8String"));
                     if (cname) {
                         if (buf[0]) strncat(buf, ", ", sizeof(buf) - strlen(buf) - 1);
