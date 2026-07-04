@@ -7,15 +7,11 @@ JB=/var/jb
 # Create data directories
 mkdir -p /var/mobile/Library/FingerDump/www
 mkdir -p /var/mobile/Library/FingerDump/reports
-mkdir -p /var/run/fingerdumpd
 
 # Set permissions
-chmod 755 $JB/usr/libexec/fingerdumpd
+chmod 755 $JB/usr/bin/fingerdumpd
 chmod 644 $JB/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.dylib
 chmod 644 $JB/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
-
-# Start the daemon (ignore failures on rootless)
-$JB/usr/libexec/fingerdumpd --daemon 2>/dev/null || true
 
 echo "FingerDump installed successfully."
 echo "Run 'fingerdumpd --scan' for a CLI scan."

@@ -147,9 +147,9 @@
 }
 
 - (NSString *)runCLIScan {
-    FILE *fp = popen("/var/jb/usr/libexec/fingerdumpd --scan 2>/dev/null", "r");
+    FILE *fp = popen("/var/jb/usr/bin/fingerdumpd --scan 2>/dev/null", "r");
     if (!fp) {
-        fp = popen("/usr/libexec/fingerdumpd --scan 2>/dev/null", "r");
+        fp = popen("/usr/bin/fingerdumpd --scan 2>/dev/null", "r");
     }
     if (!fp) return nil;
 

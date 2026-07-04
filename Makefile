@@ -39,11 +39,8 @@ include $(THEOS)/makefiles/tool.mk
 include $(THEOS)/makefiles/bundle.mk
 
 after-install::
-	install.exec "killall -9 fingerdumpd 2>/dev/null || true"
 	install.exec "mkdir -p /var/mobile/Library/FingerDump/www"
 	install.exec "cp -r web/* /var/mobile/Library/FingerDump/www/"
-	install.exec "chmod 755 /usr/libexec/fingerdumpd"
-	install.exec "chmod 644 /Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.dylib"
-	install.exec "chmod 644 /Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist"
-	install.exec "/usr/libexec/fingerdumpd --daemon 2>/dev/null || true"
-	install.exec "uicache -p /Applications/FingerDump.app 2>/dev/null || true"
+	install.exec "chmod 755 /var/jb/usr/bin/fingerdumpd"
+	install.exec "chmod 644 /var/jb/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.dylib"
+	install.exec "chmod 644 /var/jb/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist"
