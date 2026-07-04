@@ -204,7 +204,7 @@ void fd_scan_system(fd_category_result_t *result) {
         struct kinfo_proc kp;
         size_t n = sizeof(kp);
         int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, pid };
-        if (sysctl(mib3, 4, &kp, &n, NULL, 0) == 0) {
+        if (sysctl(mib, 4, &kp, &n, NULL, 0) == 0) {
             snprintf(val, sizeof(val), "%s", kp.kp_proc.p_comm);
         } else { snprintf(val, sizeof(val), "unavailable"); }
         ADD_IDENT("system.proc_comm", "Process comm", "Process command name from kinfo_proc", val, "", false, true, true);
