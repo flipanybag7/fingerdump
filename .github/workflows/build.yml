@@ -96,13 +96,6 @@ jobs:
           path: FingerDump_*.deb
           compression-level: 0
 
-      - name: Upload daemon binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: fingerdumpd-binary
-          path: .theos/obj/debug/fingerdumpd
-          compression-level: 0
-
   lint:
     name: Validate project files
     runs-on: ubuntu-latest
