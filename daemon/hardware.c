@@ -13,6 +13,14 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include "shared/types.h"
 
+#ifndef HW_CPU_SUBTYPE
+#define HW_CPU_SUBTYPE 8
+#endif
+
+#ifndef KERN_BOOTUUID
+#define KERN_BOOTUUID 15
+#endif
+
 static int get_sysctl_str(const char *name, int name2, char *out, size_t outlen) {
     size_t len = outlen;
     int mib[2] = { CTL_KERN, name2 };
