@@ -32,36 +32,27 @@ jobs:
           cd theos
           git submodule update --init --depth 1
 
-      - name: Download SDKS
-        run: |
-          curl -sL https://github.com/xybp888/iOS-SDKs/releases/download/17.5/iPhoneOS17.5.sdk.zip -o sdk.zip
-          unzip -q sdk.zip -d theos/sdks/
-          rm sdk.zip
-
       - name: Set up environment
         run: |
           echo "THEOS=${{ github.workspace }}/theos" >> $GITHUB_ENV
           echo "TARGET=iphone:latest:14.0" >> $GITHUB_ENV
+          echo "SYSROOT=$(xcrun --sdk iphoneos --show-sdk-path 2>/dev/null || echo '')" >> $GITHUB_ENV
 
       - name: Build daemon
         run: |
-          cd fingerdump
           make fingerdumpd
 
       - name: Build tweak
         run: |
-          cd fingerdump
           make FingerDumpTweak
 
       - name: Prepare package layout
         run: |
-          cd fingerdump
           mkdir -p pkg/DEBIAN
           mkdir -p pkg/usr/libexec
-          mkdir -p pkg/usr/lib
           mkdir -p pkg/Library/MobileSubstrate/DynamicLibraries
           mkdir -p pkg/var/mobile/Library/FingerDump/www
-          mkdir -p pkg/Library/Application\ Support/FingerDump
+          mkdir -p "pkg/Library/Application Support/FingerDump"
 
           cp control pkg/DEBIAN/
           cp postinst pkg/DEBIAN/
@@ -72,31 +63,31 @@ jobs:
           cp FingerDump.plist pkg/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
 
           cp -r web/* pkg/var/mobile/Library/FingerDump/www/
-          cp -r web/* pkg/Library/Application\ Support/FingerDump/
+          cp -r web/* "pkg/Library/Application Support/FingerDump/"
 
       - name: Build .deb
         run: |
-          cd fingerdump/pkg
-          chmod -R 755 usr Library var
-          chmod 644 Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.dylib
-          chmod 644 Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
+          cd pkg
+          find . -type d -exec chmod 755 {} \;
+          find . -type f -name "*.dylib" -exec chmod 644 {} \;
+          find . -type f -name "*.plist" -exec chmod 644 {} \;
           chmod 755 usr/libexec/fingerdumpd
+          chmod 755 DEBIAN/postinst
 
           dpkg-deb -Zgzip -b . ../FingerDump_${{ github.sha }}_iphoneos-arm.deb
-          mv ../FingerDump_${{ github.sha }}_iphoneos-arm.deb ../FingerDump_latest_iphoneos-arm.deb
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: FingerDump-deb
-          path: fingerdump/FingerDump_*.deb
+          path: FingerDump_*.deb
           compression-level: 0
 
-      - name: Upload binary artifact (debug symbols)
+      - name: Upload daemon binary
         uses: actions/upload-artifact@v4
         with:
           name: fingerdumpd-binary
-          path: fingerdump/.theos/obj/debug/fingerdumpd
+          path: .theos/obj/debug/fingerdumpd
           compression-level: 0
 
   lint:
@@ -106,40 +97,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check control file syntax
-        run: |
-          if [ -f fingerdump/control ]; then
-            echo "control file exists: OK"
-          fi
-
       - name: Check required files exist
         run: |
           missing=0
           for f in \
-            fingerdump/Tweak.xm \
-            fingerdump/FingerDump.plist \
-            fingerdump/daemon/fingerdumpd.c \
-            fingerdump/daemon/scanner.c \
-            fingerdump/daemon/socket_server.c \
-            fingerdump/daemon/hardware.c \
-            fingerdump/daemon/system.c \
-            fingerdump/daemon/network.c \
-            fingerdump/daemon/graphics.c \
-            fingerdump/daemon/audio.c \
-            fingerdump/daemon/sensor.c \
-            fingerdump/daemon/font.c \
-            fingerdump/daemon/persistence.c \
-            fingerdump/daemon/behavioral.c \
-            fingerdump/daemon/browser.c \
-            fingerdump/shared/types.h \
-            fingerdump/shared/protocol.h \
-            fingerdump/shared/categories.c \
-            fingerdump/web/index.html \
-            fingerdump/web/canvas_fingerprint.js \
-            fingerdump/web/webgl_fingerprint.js \
-            fingerdump/web/audio_fingerprint.js \
-            fingerdump/web/font_enumeration.js \
-            fingerdump/web/network_leaks.js; do
+            Tweak.xm \
+            FingerDump.plist \
+            daemon/fingerdumpd.c \
+            daemon/scanner.c \
+            daemon/socket_server.c \
+            daemon/hardware.c \
+            daemon/system.c \
+            daemon/network.c \
+            daemon/graphics.c \
+            daemon/audio.c \
+            daemon/sensor.c \
+            daemon/font.c \
+            daemon/persistence.c \
+            daemon/behavioral.c \
+            daemon/browser.c \
+            shared/types.h \
+            shared/protocol.h \
+            shared/categories.c \
+            web/index.html \
+            web/canvas_fingerprint.js \
+            web/webgl_fingerprint.js \
+            web/audio_fingerprint.js \
+            web/font_enumeration.js \
+            web/network_leaks.js \
+            control \
+            Makefile; do
             if [ ! -f "$f" ]; then
               echo "Missing: $f"
               missing=1
