@@ -10,6 +10,8 @@
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <CoreFoundation/CoreFoundation.h>
+#include <CFNetwork/CFNetwork.h>
+#include <net/if_dl.h>
 #include "shared/types.h"
 
 static void get_local_ips(char *out_v4, size_t v4len, char *out_v6, size_t v6len) {
@@ -128,7 +130,7 @@ static void get_wifi_info(char *out_ssid, size_t ssid_len, char *out_bssid, size
 
     id iface = ((id (*)(id, SEL))(void *)objc_msgSend)(client, sel_registerName("interface"));
     if (!iface) {
-        iface = ((id (*)(id, SEL))(void *)objc_msgSend)(client, sel_registerName("interfaceByName:"), CFSTR("en0"));
+        iface = ((id (*)(id, SEL, id))(void *)objc_msgSend)(client, sel_registerName("interfaceByName:"), (id)CFSTR("en0"));
     }
     if (!iface) {
         snprintf(out_ssid, ssid_len, "unavailable");
@@ -136,7 +138,7 @@ static void get_wifi_info(char *out_ssid, size_t ssid_len, char *out_bssid, size
         return;
     }
 
-    id scan = ((id (*)(id, SEL))(void *)objc_msgSend)(iface, sel_registerName("scanForNetworksWithName:error:"), nil, nil);
+    id scan = ((id (*)(id, SEL, id, id))(void *)objc_msgSend)(iface, sel_registerName("scanForNetworksWithName:error:"), nil, nil);
     id ssid_val = ((id (*)(id, SEL))(void *)objc_msgSend)(iface, sel_registerName("ssid"));
     if (ssid_val) {
         char *s = strdup(((const char *(*)(id, SEL))(void *)objc_msgSend)(ssid_val, sel_registerName("UTF8String")));
