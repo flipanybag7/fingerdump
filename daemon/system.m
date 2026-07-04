@@ -200,14 +200,10 @@ void fd_scan_system(fd_category_result_t *result) {
     }
 
     {
-        char buf[64] = {0};
-        size_t n = sizeof(buf) - 1;
-        int mib[2] = { CTL_KERN, KERN_PID };
         int pid = getpid();
-        mib[1] = KERN_PROC;
         struct kinfo_proc kp;
-        n = sizeof(kp);
-        int mib3[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, pid };
+        size_t n = sizeof(kp);
+        int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, pid };
         if (sysctl(mib3, 4, &kp, &n, NULL, 0) == 0) {
             snprintf(val, sizeof(val), "%s", kp.kp_proc.p_comm);
         } else { snprintf(val, sizeof(val), "unavailable"); }
