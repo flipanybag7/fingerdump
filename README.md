@@ -1,6 +1,6 @@
 # FingerDump
 
-[![Build](https://github.com/YOUR_USER/fingerdump/actions/workflows/build.yml/badge.svg)](https://github.com/YOUR_USER/fingerdump/actions/workflows/build.yml)
+[![Build](https://github.com/flipanybag7/fingerdump/actions/workflows/build.yml/badge.svg)](https://github.com/flipanybag7/fingerdump/actions/workflows/build.yml)
 
 Comprehensive iOS fingerprint identifier scanner and leak detector.
 
