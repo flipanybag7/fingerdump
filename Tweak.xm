@@ -101,8 +101,9 @@ static id new_UIPasteboard_generalPasteboard(id self, SEL _cmd) {
 
 __attribute__((constructor)) static void init() {
     @autoreleasepool {
-        NSString *procName = [[NSProcessInfo processInfo] processName];
-        if ([procName isEqualToString:@"fingerdumpd"]) {
+        NSString *procPath = [[NSProcessInfo processInfo] processName];
+        NSString *procName = [procPath lastPathComponent];
+        if ([procName hasPrefix:@"fingerdumpd"]) {
             return;
         }
 
