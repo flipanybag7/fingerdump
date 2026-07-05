@@ -101,8 +101,13 @@ static id new_UIPasteboard_generalPasteboard(id self, SEL _cmd) {
 
 __attribute__((constructor)) static void init() {
     @autoreleasepool {
+        NSString *procName = [[NSProcessInfo processInfo] processName];
+        if ([procName isEqualToString:@"fingerdumpd"]) {
+            return;
+        }
+
         mkdir("/var/mobile/Library/FingerDump", 0755);
-        FDLog(@"FingerDump", @"Tweak loaded into %@", [[NSBundle mainBundle] bundleIdentifier]);
+        FDLog(@"FingerDump", @"Tweak loaded into %@", procName);
 
         MSHookMessageEx(objc_getClass("UIDevice"), @selector(name), (IMP)new_UIDevice_name, (IMP *)&orig_UIDevice_name);
         MSHookMessageEx(objc_getClass("UIDevice"), @selector(systemVersion), (IMP)new_UIDevice_systemVersion, (IMP *)&orig_UIDevice_systemVersion);
