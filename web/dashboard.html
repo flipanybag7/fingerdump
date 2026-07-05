@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,maximum-scale=1">
+<title>FingerDump Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0d0d1a;color:#e0e0e0;padding:12px;-webkit-text-size-adjust:100%}
+h1{font-size:22px;margin:0 0 4px}
+.header{background:linear-gradient(135deg,#1a1a3e,#0d0d1a);padding:16px;border-radius:12px;margin-bottom:12px;text-align:center}
+.header .sub{font-size:12px;color:#666;margin-bottom:8px}
+.stats{display:flex;gap:8px;margin-bottom:12px}
+.stat{flex:1;background:#1a1a3e;border-radius:10px;padding:12px;text-align:center}
+.stat .num{font-size:28px;font-weight:700}
+.stat .lbl{font-size:11px;color:#888;margin-top:2px}
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;text-align:center;margin-bottom:12px}
+.btn-primary{background:#e94560;color:#fff}
+.btn-primary:active{background:#c73a52}
+.btn-secondary{background:#1a1a3e;color:#e0e0e0;font-size:13px;padding:10px}
+#status{padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px;display:none}
+#status.loading{background:#1a3a1a;color:#4ecca3;display:block}
+#status.error{background:#3a1a1a;color:#e94560;display:block}
+.cat{margin-bottom:10px;background:#1a1a3e;border-radius:10px;overflow:hidden}
+.cat-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cat-name{font-size:14px;font-weight:600}
+.cat-count{font-size:11px;color:#888}
+.cat-body{display:none;border-top:1px solid #0d0d1a}
+.cat-body.open{display:block}
+.ident{padding:10px 14px;border-bottom:1px solid #111128;font-size:13px}
+.ident:last-child{border-bottom:none}
+.ident-name{font-size:12px;font-weight:600;margin-bottom:2px}
+.ident-val{font-family:monospace;font-size:11px;word-break:break-all;margin-top:4px;padding:4px 6px;border-radius:4px}
+.leak{color:#e94560}
+.leak .ident-val{background:#3a1515}
+.safe{color:#4ecca3}
+.safe .ident-val{background:#153a15}
+.unhooked{color:#888}
+.unhooked .ident-val{background:#1a1a1a}
+.badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700}
+.badge-leak{background:#e94560;color:#fff}
+.badge-safe{background:#4ecca3;color:#000}
+.badge-hook{background:#666;color:#fff}
+</style>
+</head>
+<body>
+<div class="header">
+<div style="color:#e94560;font-weight:700;font-size:28px">FingerDump</div>
+<div class="sub">Fingerprint Identifier Scanner</div>
+</div>
+
+<div class="stats" id="stats">
+<div class="stat"><div class="num" style="color:#4ecca3" id="total">0</div><div class="lbl">Identifiers</div></div>
+<div class="stat"><div class="num" style="color:#e94560" id="leaks">0</div><div class="lbl">Leaking</div></div>
+<div class="stat"><div class="num" style="color:#4ecca3" id="spoofed">0</div><div class="lbl">Spoofed</div></div>
+</div>
+
+<button class="btn btn-primary" onclick="runScan()" id="scanBtn">Run Full Scan</button>
+<div id="status"></div>
+<div id="categories"></div>
+
+<script>
+let scanData = null;
+
+function $(id) { return document.getElementById(id); }
+
+function runScan() {
+  $('scanBtn').disabled = true;
+  $('scanBtn').textContent = 'Scanning...';
+  $('status').className = 'loading';
+  $('status').textContent = 'Scanning all identifiers...';
+  $('categories').innerHTML = '';
+
+  fetch('/api/scan')
+    .then(r => r.json())
+    .then(data => {
+      scanData = data;
+      $('scanBtn').textContent = 'Run Full Scan';
+      $('scanBtn').disabled = false;
+      $('status').className = '';
+      displayResults(data);
+    })
+    .catch(e => {
+      $('scanBtn').textContent = 'Run Full Scan';
+      $('scanBtn').disabled = false;
+      $('status').className = 'error';
+      $('status').textContent = 'Error: ' + e.message;
+    });
+}
+
+function displayResults(data) {
+  const meta = data.metadata || {};
+  $('total').textContent = meta.total_identifiers || 0;
+  $('leaks').textContent = meta.total_leaking || 0;
+  $('spoofed').textContent = meta.total_spoofed || 0;
+
+  const cats = data.categories || [];
+  const container = $('categories');
+  container.innerHTML = '';
+
+  // Summary card
+  const sum = document.createElement('div');
+  sum.className = 'cat';
+  sum.innerHTML = '<div class="cat-header" onclick="this.nextElementSibling.classList.toggle(\'open\')">' +
+    '<span class="cat-name">Summary</span>' +
+    '<span class="cat-count">' + data.timestamp + '</span></div>' +
+    '<div class="cat-body open"><div class="ident">' +
+    '<div class="ident-name">Device: ' + (data.device_name || 'Unknown') + '</div>' +
+    '<div class="ident-name">iOS: ' + (data.ios_version || 'Unknown') + '</div>' +
+    '<div class="ident-name">Scan ID: ' + (data.scan_id || '') + '</div></div></div>';
+  container.appendChild(sum);
+
+  cats.forEach(cat => {
+    const idents = cat.identifiers || [];
+    const leaking = idents.filter(i => i.is_leaking).length;
+    const safe = idents.filter(i => !i.is_leaking && i.is_spoofed).length;
+    const badge = leaking > 0
+      ? '<span class="badge badge-leak">' + leaking + ' leak</span>'
+      : '<span class="badge badge-safe">' + safe + ' ok</span>';
+
+    const div = document.createElement('div');
+    div.className = 'cat';
+    div.innerHTML = '<div class="cat-header" onclick="this.nextElementSibling.classList.toggle(\'open\')">' +
+      '<span class="cat-name">' + (cat.name || 'Unknown') + '</span>' +
+      '<span>' + badge + ' <span class="cat-count">' + idents.length + '</span></span></div>' +
+      '<div class="cat-body">' +
+      idents.map(i => {
+        const cls = i.is_leaking ? 'leak' : (i.is_spoofed ? 'safe' : 'unhooked');
+        const label = i.is_leaking ? 'LEAK' : (i.is_spoofed ? 'SPOOFED' : 'UNHOOKED');
+        const val = i.is_leaking ? i.real_value : (i.is_spoofed ? i.spoofed_value : i.real_value);
+        return '<div class="ident ' + cls + '">' +
+          '<div><span class="ident-name">' + i.name + '</span>' +
+          ' <span class="badge badge-' + (i.is_leaking ? 'leak' : 'hook') + '">' + label + '</span></div>' +
+          '<div class="ident-val">' + escapeHtml(val) + '</div></div>';
+      }).join('') +
+      '</div>';
+    container.appendChild(div);
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

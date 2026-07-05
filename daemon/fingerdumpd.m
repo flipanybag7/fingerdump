@@ -15,6 +15,8 @@
 extern int fd_server_start(void);
 extern void fd_server_run(void);
 extern void fd_server_stop(void);
+extern int http_server_start(void);
+extern void http_server_run(int);
 
 static const char *pid_path = "/var/run/fingerdumpd.pid";
 
@@ -96,6 +98,15 @@ int main(int argc, char **argv) {
         if (strcmp(argv[1], "--daemon") == 0) {
             daemonize();
         }
+        if (strcmp(argv[1], "--serve") == 0) {
+            int srv = http_server_start();
+            if (srv < 0) {
+                fprintf(stderr, "failed to start HTTP server\n");
+                return 1;
+            }
+            http_server_run(srv);
+            return 0;
+        }
         if (strcmp(argv[1], "--foreground") == 0) {
             FILE *pf = fopen(pid_path, "w");
             if (pf) { fprintf(pf, "%d\n", getpid()); fclose(pf); }
@@ -105,6 +116,7 @@ int main(int argc, char **argv) {
             printf("Usage:\n");
             printf("  fingerdumpd --daemon        Run as daemon (background)\n");
             printf("  fingerdumpd --foreground    Run in foreground\n");
+            printf("  fingerdumpd --serve         Start HTTP dashboard on http://localhost:8080\n");
             printf("  fingerdumpd --scan          Run a single full scan, output JSON, exit\n");
             printf("  fingerdumpd --scan-cat N    Scan single category N, output JSON\n");
             printf("  fingerdumpd --help          Display this help\n");

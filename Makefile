@@ -13,7 +13,7 @@ FingerDumpTweak_PRIVATE_FRAMEWORKS = CoreTelephony
 
 TOOL_NAME = fingerdumpd
 fingerdumpd_FILES = \
-	daemon/fingerdumpd.m daemon/scanner.m daemon/socket_server.m \
+	daemon/fingerdumpd.m daemon/scanner.m daemon/socket_server.m daemon/httpserver.m \
 	daemon/hardware.m daemon/system.m daemon/network.m daemon/graphics.m \
 	daemon/audio.m daemon/sensor.m daemon/font.m daemon/persistence.m \
 	daemon/behavioral.m daemon/browser.m
