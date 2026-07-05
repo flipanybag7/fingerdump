@@ -21,7 +21,8 @@ fingerdumpd_CFLAGS = -I.
 fingerdumpd_CODESIGN_FLAGS = -Sentitlements.plist
 fingerdumpd_LDFLAGS = \
 	-lobjc \
-	-framework CoreFoundation
+	-framework CoreFoundation \
+	-framework Security
 
 BUNDLE_NAME = FingerDumpPrefs
 FingerDumpPrefs_FILES = FingerDumpPrefs/FPPreferenceController.m
