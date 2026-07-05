@@ -69,6 +69,7 @@ jobs:
           clang -arch arm64 -isysroot "$SYSROOT" \
             -bundle -Xlinker -undefined -Xlinker dynamic_lookup \
             -fobjc-arc \
+            -lobjc \
             -F"$FW" \
             -framework UIKit -framework Foundation \
             .theos/obj/debug/FPPreferenceController.o \
