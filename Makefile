@@ -31,8 +31,9 @@ fingerdumpd_LDFLAGS = \
 BUNDLE_NAME = FingerDumpPrefs
 FingerDumpPrefs_FILES = FingerDumpPrefs/FPPreferenceController.m
 FingerDumpPrefs_CFLAGS = -I.
+FingerDumpPrefs_LDFLAGS = -framework UIKit -framework Foundation -lobjc
 FingerDumpPrefs_INSTALL_PATH = /Library/PreferenceBundles
-FingerDumpPrefs_PRIVATE_FRAMEWORKS = Preferences
+FingerDumpPrefs_PLIST = FingerDumpPrefs/Resources/Info.plist
 
 include $(THEOS)/makefiles/common.mk
 include $(THEOS)/makefiles/tweak.mk

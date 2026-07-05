@@ -49,7 +49,7 @@ jobs:
 
       - name: Build all (daemon + tweak + prefs)
         run: |
-          make clean || true
+          rm -rf .theos/obj/debug/FingerDumpPrefs*
           make fingerdumpd FingerDumpTweak FingerDumpPrefs
 
       - name: Prepare package layout
@@ -58,6 +58,7 @@ jobs:
           mkdir -p pkg/usr/bin
           mkdir -p pkg/Library/MobileSubstrate/DynamicLibraries
           mkdir -p pkg/Library/PreferenceBundles
+          mkdir -p pkg/Library/PreferenceLoader/Preferences
           mkdir -p pkg/var/mobile/Library/FingerDump/www
 
           cp control pkg/DEBIAN/
@@ -67,12 +68,25 @@ jobs:
           cp .theos/obj/debug/fingerdumpd pkg/usr/bin/
           cp .theos/obj/debug/FingerDumpTweak.dylib pkg/Library/MobileSubstrate/DynamicLibraries/
           cp FingerDump.plist pkg/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
+
+          # Preferenceloader entry
+          cp FingerDumpPrefs/FingerDumpPrefs.plist pkg/Library/PreferenceLoader/Preferences/
+
+          # Preference bundle
+          BUNDLE_SRC=""
           if [ -d .theos/obj/debug/FingerDumpPrefs.bundle ]; then
-            cp -r .theos/obj/debug/FingerDumpPrefs.bundle pkg/Library/PreferenceBundles/
+            BUNDLE_SRC=".theos/obj/debug/FingerDumpPrefs.bundle"
           elif [ -d .theos/staging/Library/PreferenceBundles/FingerDumpPrefs.bundle ]; then
-            cp -r .theos/staging/Library/PreferenceBundles/FingerDumpPrefs.bundle pkg/Library/PreferenceBundles/
+            BUNDLE_SRC=".theos/staging/Library/PreferenceBundles/FingerDumpPrefs.bundle"
+          fi
+          if [ -n "$BUNDLE_SRC" ]; then
+            cp -r "$BUNDLE_SRC" pkg/Library/PreferenceBundles/
           else
-            echo "WARNING: FingerDumpPrefs.bundle not found, skipping"
+            # Build bundle manually as fallback
+            mkdir -p pkg/Library/PreferenceBundles/FingerDumpPrefs.bundle
+            cp .theos/obj/debug/FingerDumpPrefs pkg/Library/PreferenceBundles/FingerDumpPrefs.bundle/FingerDumpPrefs 2>/dev/null || true
+            cp FingerDumpPrefs/Resources/Info.plist pkg/Library/PreferenceBundles/FingerDumpPrefs.bundle/ 2>/dev/null || true
+            echo "WARNING: bundle binary missing, built partial bundle"
           fi
 
           cp -r web/* pkg/var/mobile/Library/FingerDump/www/
