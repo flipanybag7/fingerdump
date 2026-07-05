@@ -9,7 +9,6 @@
 #include <net/if_dl.h>
 #include <ifaddrs.h>
 #include <unistd.h>
-#include <IOKit/IOKitLib.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include "shared/types.h"
 
@@ -137,41 +136,6 @@ static void get_bluetooth_mac(char *out, size_t len) {
     snprintf(out, len, "unavailable");
 }
 
-static void get_io_entry(const char *entry_name, const char *key, char *out, size_t len) {
-    CFMutableDictionaryRef matching = IOServiceMatching(entry_name);
-    if (!matching) { snprintf(out, len, "unavailable"); return; }
-
-    io_iterator_t iter;
-    kern_return_t kr = IOServiceGetMatchingServices(kIOMasterPortDefault, matching, &iter);
-    if (kr != KERN_SUCCESS) { snprintf(out, len, "unavailable"); return; }
-
-    io_registry_entry_t entry;
-    char result[512] = "unavailable";
-    while ((entry = IOIteratorNext(iter)) != IO_OBJECT_NULL) {
-        CFTypeRef property = IORegistryEntryCreateCFProperty(entry, CFStringCreateWithCString(NULL, key, kCFStringEncodingUTF8), kCFAllocatorDefault, 0);
-        if (property) {
-            if (CFGetTypeID(property) == CFDataGetTypeID()) {
-                CFIndex data_len = CFDataGetLength((CFDataRef)property);
-                if (data_len > 0 && data_len < 256) {
-                    CFDataGetBytes((CFDataRef)property, CFRangeMake(0, data_len), (UInt8 *)result);
-                    result[data_len] = 0;
-                }
-            } else if (CFGetTypeID(property) == CFStringGetTypeID()) {
-                const char *str = CFStringGetCStringPtr((CFStringRef)property, kCFStringEncodingUTF8);
-                if (str) snprintf(result, sizeof(result), "%s", str);
-            } else if (CFGetTypeID(property) == CFNumberGetTypeID()) {
-                int64_t val = 0;
-                CFNumberGetValue((CFNumberRef)property, kCFNumberSInt64Type, &val);
-                snprintf(result, sizeof(result), "%lld", val);
-            }
-            CFRelease(property);
-        }
-        IOObjectRelease(entry);
-    }
-    IOObjectRelease(iter);
-    snprintf(out, len, "%s", result);
-}
-
 static void get_chip_id(char *out, size_t len) {
     char buf[256] = {0};
     size_t n = sizeof(buf) - 1;
@@ -240,21 +204,6 @@ void fd_scan_hardware(fd_category_result_t *result) {
         snprintf(val, sizeof(val), "%d", ncpu);
     } else { snprintf(val, sizeof(val), "unavailable"); }
     ADD_IDENT("hw.ncpu", "CPU count", "Number of CPUs", val, "", false, true, true);
-
-    get_io_entry("IOPlatformExpertDevice", "IOPlatformSerialNumber", val, sizeof(val));
-    ADD_IDENT("io.serial", "IOPlatformSerialNumber", "Device serial number from IOKit", val, "", false, true, true);
-
-    get_io_entry("AppleARMPE", "region-info", val, sizeof(val));
-    ADD_IDENT("io.region", "Region info", "Device region info from IOKit", val, "", false, true, true);
-
-    get_io_entry("IOPlatformExpertDevice", "MLBSerialNumber", val, sizeof(val));
-    ADD_IDENT("io.mlb", "MLB serial", "Main logic board serial number", val, "", false, true, true);
-
-    get_io_entry("IOPlatformExpertDevice", "FirmwareVolume", val, sizeof(val));
-    ADD_IDENT("io.firmware", "Firmware volume", "Firmware volume identifier", val, "", false, true, true);
-
-    get_io_entry("IOPlatformExpertDevice", "UniqueChipID", val, sizeof(val));
-    ADD_IDENT("io.chipid", "Unique chip ID", "Unique chip identifier from IOKit", val, "", false, true, true);
 
     result->count = i;
 }

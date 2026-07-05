@@ -26,13 +26,7 @@ fingerdumpd_LDFLAGS = \
 	-framework Security \
 	-framework CFNetwork \
 	-weak_framework CoreGraphics \
-	-weak_framework IOKit \
-	-weak_framework CoreMotion \
-	-weak_framework AudioToolbox \
-	-weak_framework CoreText \
-	-weak_framework WebKit \
-	-weak_framework UIKit \
-	-weak_framework CoreTelephony
+	-weak_framework UIKit
 
 BUNDLE_NAME = FingerDumpPrefs
 FingerDumpPrefs_FILES = FingerDumpPrefs/FPPreferenceController.m
