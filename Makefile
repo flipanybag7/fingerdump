@@ -2,7 +2,7 @@
 # Build: tweak + daemon + preference bundle
 
 export TARGET = iphone:latest:14.0
-export ARCHS = arm64 arm64e
+export ARCHS = arm64
 export PACKAGE_ARCH = iphoneos-arm
 export PACKAGE_VERSION = 1.0.0
 
@@ -21,12 +21,7 @@ fingerdumpd_CFLAGS = -I.
 fingerdumpd_CODESIGN_FLAGS = -Sentitlements.plist
 fingerdumpd_LDFLAGS = \
 	-lobjc \
-	-F/System/Library/PrivateFrameworks \
-	-framework CoreFoundation \
-	-framework Security \
-	-framework CFNetwork \
-	-weak_framework CoreGraphics \
-	-weak_framework UIKit
+	-framework CoreFoundation
 
 BUNDLE_NAME = FingerDumpPrefs
 FingerDumpPrefs_FILES = FingerDumpPrefs/FPPreferenceController.m
