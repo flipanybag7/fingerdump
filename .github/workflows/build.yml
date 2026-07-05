@@ -54,20 +54,28 @@ jobs:
       - name: Build prefs bundle manually
         run: |
           SYSROOT=$(xcrun --sdk iphoneos --show-sdk-path)
+          FW="$SYSROOT/System/Library/Frameworks"
           mkdir -p .theos/obj/debug/FingerDumpPrefs.bundle
+          set -e
+          echo "=== Compiling prefs bundle ==="
           clang -x objective-c -arch arm64 -isysroot "$SYSROOT" \
+            -fobjc-arc \
             -I. \
-            -F"$SYSROOT/System/Library/Frameworks" \
+            -F"$FW" \
             -framework UIKit -framework Foundation \
             -c FingerDumpPrefs/FPPreferenceController.m \
-            -o .theos/obj/debug/FPPreferenceController.arm64.o 2>/dev/null && \
+            -o .theos/obj/debug/FPPreferenceController.o
+          echo "=== Linking prefs bundle ==="
           clang -arch arm64 -isysroot "$SYSROOT" \
+            -bundle -Xlinker -undefined -Xlinker dynamic_lookup \
+            -fobjc-arc \
+            -F"$FW" \
             -framework UIKit -framework Foundation \
-            -dynamiclib -Xlinker -bundle \
-            -o .theos/obj/debug/FingerDumpPrefs.bundle/FingerDumpPrefs \
-            .theos/obj/debug/FPPreferenceController.arm64.o 2>/dev/null && \
-          cp FingerDumpPrefs/Resources/Info.plist .theos/obj/debug/FingerDumpPrefs.bundle/ 2>/dev/null || \
-          echo "WARNING: manual bundle build failed, prefs will not be available"
+            .theos/obj/debug/FPPreferenceController.o \
+            -o .theos/obj/debug/FingerDumpPrefs.bundle/FingerDumpPrefs
+          echo "=== Bundle built OK ==="
+          cp FingerDumpPrefs/Resources/Info.plist .theos/obj/debug/FingerDumpPrefs.bundle/
+          echo "=== Info.plist copied ==="
 
       - name: Prepare package layout
         run: |

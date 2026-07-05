@@ -2,14 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>entry</key>
-    <dict>
-        <key>bundle</key>
-        <string>FingerDumpPrefs</string>
-        <key>label</key>
-        <string>FingerDump</string>
-        <key>viewControllerClass</key>
-        <string>FPPreferenceController</string>
-    </dict>
+    <key>items</key>
+    <array>
+        <dict>
+            <key>cell</key>
+            <string>PSLinkCell</string>
+            <key>label</key>
+            <string>FingerDump</string>
+            <key>bundle</key>
+            <string>FingerDumpPrefs</string>
+            <key>isController</key>
+            <true/>
+            <key>viewControllerClass</key>
+            <string>FPPreferenceController</string>
+        </dict>
+    </array>
 </dict>
 </plist>
