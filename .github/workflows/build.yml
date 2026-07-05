@@ -47,10 +47,27 @@ jobs:
           mkdir -p .theos
           touch .theos/build_session
 
-      - name: Build all (daemon + tweak + prefs)
+      - name: Build daemon + tweak
         run: |
-          rm -rf .theos/obj/debug/FingerDumpPrefs*
-          make fingerdumpd FingerDumpTweak FingerDumpPrefs
+          make fingerdumpd FingerDumpTweak
+
+      - name: Build prefs bundle manually
+        run: |
+          SYSROOT=$(xcrun --sdk iphoneos --show-sdk-path)
+          mkdir -p .theos/obj/debug/FingerDumpPrefs.bundle
+          clang -x objective-c -arch arm64 -isysroot "$SYSROOT" \
+            -I. \
+            -F"$SYSROOT/System/Library/Frameworks" \
+            -framework UIKit -framework Foundation \
+            -c FingerDumpPrefs/FPPreferenceController.m \
+            -o .theos/obj/debug/FPPreferenceController.arm64.o 2>/dev/null && \
+          clang -arch arm64 -isysroot "$SYSROOT" \
+            -framework UIKit -framework Foundation \
+            -dynamiclib -Xlinker -bundle \
+            -o .theos/obj/debug/FingerDumpPrefs.bundle/FingerDumpPrefs \
+            .theos/obj/debug/FPPreferenceController.arm64.o 2>/dev/null && \
+          cp FingerDumpPrefs/Resources/Info.plist .theos/obj/debug/FingerDumpPrefs.bundle/ 2>/dev/null || \
+          echo "WARNING: manual bundle build failed, prefs will not be available"
 
       - name: Prepare package layout
         run: |
@@ -73,20 +90,10 @@ jobs:
           cp FingerDumpPrefs/FingerDumpPrefs.plist pkg/Library/PreferenceLoader/Preferences/
 
           # Preference bundle
-          BUNDLE_SRC=""
           if [ -d .theos/obj/debug/FingerDumpPrefs.bundle ]; then
-            BUNDLE_SRC=".theos/obj/debug/FingerDumpPrefs.bundle"
-          elif [ -d .theos/staging/Library/PreferenceBundles/FingerDumpPrefs.bundle ]; then
-            BUNDLE_SRC=".theos/staging/Library/PreferenceBundles/FingerDumpPrefs.bundle"
-          fi
-          if [ -n "$BUNDLE_SRC" ]; then
-            cp -r "$BUNDLE_SRC" pkg/Library/PreferenceBundles/
+            cp -r .theos/obj/debug/FingerDumpPrefs.bundle pkg/Library/PreferenceBundles/
           else
-            # Build bundle manually as fallback
-            mkdir -p pkg/Library/PreferenceBundles/FingerDumpPrefs.bundle
-            cp .theos/obj/debug/FingerDumpPrefs pkg/Library/PreferenceBundles/FingerDumpPrefs.bundle/FingerDumpPrefs 2>/dev/null || true
-            cp FingerDumpPrefs/Resources/Info.plist pkg/Library/PreferenceBundles/FingerDumpPrefs.bundle/ 2>/dev/null || true
-            echo "WARNING: bundle binary missing, built partial bundle"
+            echo "WARNING: FingerDumpPrefs.bundle not built"
           fi
 
           cp -r web/* pkg/var/mobile/Library/FingerDump/www/
