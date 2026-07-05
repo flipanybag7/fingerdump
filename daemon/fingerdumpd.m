@@ -78,6 +78,10 @@ int main(int argc, char **argv) {
     signal(SIGILL, sigsegv_handler);
 
     if (argc > 1) {
+        if (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0) {
+            printf("FingerDump v1.0.0 | built for arm64\n");
+            return 0;
+        }
         if (strcmp(argv[1], "--scan") == 0) {
             run_cli_scan();
             return 0;
