@@ -2,16 +2,17 @@
 
 # FingerDump post-installation script (rootless)
 
-JB=/var/jb
-
 # Create data directories
 mkdir -p /var/mobile/Library/FingerDump/www
 mkdir -p /var/mobile/Library/FingerDump/reports
 
 # Set permissions
-chmod 755 $JB/usr/bin/fingerdumpd
-chmod 644 $JB/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.dylib
-chmod 644 $JB/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
+chmod 755 /usr/bin/fingerdumpd
+chmod 644 /Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.dylib
+chmod 644 /Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
+
+# Start the daemon
+/usr/bin/fingerdumpd --daemon 2>/dev/null || true
 
 echo "FingerDump installed successfully."
 echo "Run 'fingerdumpd --scan' for a CLI scan."

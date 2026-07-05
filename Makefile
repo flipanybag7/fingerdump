@@ -3,7 +3,7 @@
 
 export TARGET = iphone:latest:14.0
 export ARCHS = arm64 arm64e
-export PACKAGE_ARCH = iphoneos-arm64
+export PACKAGE_ARCH = iphoneos-arm
 export PACKAGE_VERSION = 1.0.0
 
 TWEAK_NAME = FingerDumpTweak
@@ -42,6 +42,6 @@ include $(THEOS)/makefiles/bundle.mk
 after-install::
 	install.exec "mkdir -p /var/mobile/Library/FingerDump/www"
 	install.exec "cp -r web/* /var/mobile/Library/FingerDump/www/"
-	install.exec "chmod 755 /var/jb/usr/bin/fingerdumpd"
-	install.exec "chmod 644 /var/jb/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.dylib"
-	install.exec "chmod 644 /var/jb/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist"
+	install.exec "chmod 755 /usr/bin/fingerdumpd"
+	install.exec "chmod 644 /Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.dylib"
+	install.exec "chmod 644 /Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist"

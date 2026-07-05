@@ -55,27 +55,27 @@ jobs:
       - name: Prepare package layout
         run: |
           mkdir -p pkg/DEBIAN
-          mkdir -p pkg/var/jb/usr/bin
-          mkdir -p pkg/var/jb/Library/MobileSubstrate/DynamicLibraries
-          mkdir -p pkg/var/jb/Library/PreferenceBundles
-          mkdir -p pkg/var/jb/var/mobile/Library/FingerDump/www
+          mkdir -p pkg/usr/bin
+          mkdir -p pkg/Library/MobileSubstrate/DynamicLibraries
+          mkdir -p pkg/Library/PreferenceBundles
+          mkdir -p pkg/var/mobile/Library/FingerDump/www
 
           cp control pkg/DEBIAN/
           cp postinst pkg/DEBIAN/
           chmod 755 pkg/DEBIAN/postinst
 
-          cp .theos/obj/debug/fingerdumpd pkg/var/jb/usr/bin/fingerdumpd
-          cp .theos/obj/debug/FingerDumpTweak.dylib pkg/var/jb/Library/MobileSubstrate/DynamicLibraries/
-          cp FingerDump.plist pkg/var/jb/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
+          cp .theos/obj/debug/fingerdumpd pkg/usr/bin/
+          cp .theos/obj/debug/FingerDumpTweak.dylib pkg/Library/MobileSubstrate/DynamicLibraries/
+          cp FingerDump.plist pkg/Library/MobileSubstrate/DynamicLibraries/FingerDumpTweak.plist
           if [ -d .theos/obj/debug/FingerDumpPrefs.bundle ]; then
-            cp -r .theos/obj/debug/FingerDumpPrefs.bundle pkg/var/jb/Library/PreferenceBundles/
+            cp -r .theos/obj/debug/FingerDumpPrefs.bundle pkg/Library/PreferenceBundles/
           elif [ -d .theos/staging/Library/PreferenceBundles/FingerDumpPrefs.bundle ]; then
-            cp -r .theos/staging/Library/PreferenceBundles/FingerDumpPrefs.bundle pkg/var/jb/Library/PreferenceBundles/
+            cp -r .theos/staging/Library/PreferenceBundles/FingerDumpPrefs.bundle pkg/Library/PreferenceBundles/
           else
             echo "WARNING: FingerDumpPrefs.bundle not found, skipping"
           fi
 
-          cp -r web/* pkg/var/jb/var/mobile/Library/FingerDump/www/
+          cp -r web/* pkg/var/mobile/Library/FingerDump/www/
 
       - name: Install dpkg
         run: |
@@ -87,10 +87,10 @@ jobs:
           find . -type d -exec chmod 755 {} \;
           find . -type f -name "*.dylib" -exec chmod 644 {} \;
           find . -type f -name "*.plist" -exec chmod 644 {} \;
-          chmod 755 var/jb/usr/bin/fingerdumpd
+          chmod 755 usr/bin/fingerdumpd
           chmod 755 DEBIAN/postinst
 
-          dpkg-deb -Zgzip -b . ../FingerDump_${{ github.sha }}_iphoneos-arm64.deb
+          dpkg-deb -Zgzip -b . ../FingerDump_${{ github.sha }}_iphoneos-arm.deb
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4

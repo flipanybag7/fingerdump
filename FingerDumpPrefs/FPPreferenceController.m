@@ -147,10 +147,7 @@
 }
 
 - (NSString *)runCLIScan {
-    FILE *fp = popen("/var/jb/usr/bin/fingerdumpd --scan 2>/dev/null", "r");
-    if (!fp) {
-        fp = popen("/usr/bin/fingerdumpd --scan 2>/dev/null", "r");
-    }
+    FILE *fp = popen("/usr/bin/fingerdumpd --scan 2>/dev/null", "r");
     if (!fp) return nil;
 
     NSMutableString *outp = [NSMutableString string];
